@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vault
+spec:
+  serviceName: vault-internal
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  replicas: 3
+  revisionHistoryLimit: 10
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: vault
+    spec:
+      containers:
+        - name: bank-vaults
+          image: bank-vaults
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              if [ "$BAO_K8S_POD_NAME" = "vault-0" ]; then
+                exec bank-vaults unseal --init \
+                  --mode k8s \
+                  --k8s-secret-namespace "$BAO_K8S_NAMESPACE" \
+                  --k8s-secret-name vault-unseal-keys \
+                  --secret-shares 5 \
+                  --secret-threshold 3
+              else
+                exec bank-vaults unseal \
+                  --mode k8s \
+                  --k8s-secret-namespace "$BAO_K8S_NAMESPACE" \
+                  --k8s-secret-name vault-unseal-keys \
+                  --secret-shares 5 \
+                  --secret-threshold 3
+              fi
+          env:
+            - name: VAULT_ADDR
+              value: "http://127.0.0.1:8200"
+            - name: BAO_K8S_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: BAO_K8S_POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 50m
+              memory: 32Mi
+        - args:
+            - server
+          env:
+            - name: BAO_K8S_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: BAO_K8S_POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: BAO_API_ADDR
+              value: "http://$(BAO_K8S_POD_NAME).vault-internal:8200"
+            - name: BAO_CLUSTER_ADDR
+              value: "https://$(BAO_K8S_POD_NAME).vault-internal:8201"
+            - name: SKIP_CHOWN
+              value: "1"
+            - name: SKIP_SETCAP
+              value: "1"
+          image: openbao
+          imagePullPolicy: IfNotPresent
+          name: vault
+          ports:
+            - containerPort: 8200
+              name: vault-api
+            - containerPort: 8201
+              name: vault-cluster
+          resources:
+            limits:
+              cpu: 200m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /v1/sys/health?standbyok=true
+              port: 8200
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /v1/sys/health?standbyok=true&uninitcode=200&sealedcode=200
+              port: 8200
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          volumeMounts:
+            - mountPath: /openbao/config
+              name: vault-server-config
+            - mountPath: /openbao/file
+              name: vault-raft
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: vault
+                topologyKey: kubernetes.io/hostname
+      serviceAccountName: vault
+      volumes:
+        - name: vault-server-config
+          configMap:
+            defaultMode: 420
+            name: vault-server-config
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        creationTimestamp: null
+        name: vault-raft
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+        volumeMode: Filesystem

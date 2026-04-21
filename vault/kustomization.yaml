@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: lars-sandbox
+
+labels:
+  - pairs:
+      component: vault
+    includeSelectors: true
+
+resources:
+  - statefulset.yaml
+  - serviceaccount.yaml
+  - services/vault.yaml
+  - services/vault-internal.yaml
+  - rbac.yaml
+  - deployments/vault-configure.yaml
+  - ingress.yaml
+
+configMapGenerator:
+  - name: vault-server-config
+    files:
+      - config/server-config.json
+
+  - name: vault-runtime-config
+    files:
+      - config/runtime-config.yaml

@@ -1,0 +1,189 @@
+realm: caara-races
+enabled: true
+displayName: CAARA Race and Event Support
+verifyEmail: true
+rememberMe: true
+resetPasswordAllowed: true
+loginWithEmailAllowed: true
+registrationAllowed: true
+actionTokenGeneratedByUserLifespan: 900
+roles:
+  client:
+    caara-races-website:
+      - name: approved
+        description: ""
+        composite: false
+        clientRole: true
+        attributes: {}
+groups:
+  - name: approved
+    path: /approved
+    clientRoles:
+      caara-races-website:
+        - approved
+clientScopes:
+  - name: groups
+    protocol: openid-connect
+    description: "Group membership"
+    attributes:
+      include.in.token.scope: "true"
+      display.on.consent.screen: "true"
+defaultOptionalClientScopes:
+  - groups
+clients:
+  - clientId: caara-races-website
+    rootUrl: https://caara-races-dev.oddbit.com
+    adminUrl: https://caara-races-dev.oddbit.com
+    baseUrl: https://caara-races-dev.oddbit.com
+    enabled: true
+    alwaysDisplayInConsole: true
+    clientAuthenticatorType: client-secret
+    publicClient: false
+    redirectUris:
+      - https://caara-races-dev.oddbit.com/oauth2/callback
+    webOrigins:
+      - https://caara-races-dev.oddbit.com
+    protocol: openid-connect
+    attributes:
+      post.logout.redirect.uris: "https://caara-races-dev.oddbit.com/*"
+    protocolMappers:
+      - name: group-membership
+        protocol: openid-connect
+        protocolMapper: oidc-group-membership-mapper
+        consentRequired: false
+        config:
+          full.path: "true"
+          introspection.token.claim: "true"
+          userinfo.token.claim: "true"
+          multivalued: "true"
+          id.token.claim: "true"
+          lightweight.claim: "false"
+          access.token.claim: "true"
+          claim.name: groups
+      - name: caara-races-website audience
+        protocol: openid-connect
+        protocolMapper: oidc-audience-mapper
+        consentRequired: false
+        config:
+          included.client.audience: caara-races-website
+          id.token.claim: "false"
+          lightweight.claim: "false"
+          introspection.token.claim: "true"
+          access.token.claim: "true"
+          userinfo.token.claim: "false"
+    defaultClientScopes:
+      - web-origins
+      - acr
+      - profile
+      - roles
+      - basic
+      - email
+    optionalClientScopes:
+      - address
+      - phone
+      - offline_access
+      - organization
+      - groups
+      - microprofile-jwt
+  - clientId: caara-races-deployer
+    name: caara-races-deployer
+    description: authenticate to rclone
+    surrogateAuthRequired: false
+    enabled: true
+    alwaysDisplayInConsole: true
+    clientAuthenticatorType: client-secret
+    serviceAccountsEnabled: true
+    publicClient: false
+    protocol: openid-connect
+    protocolMappers:
+      - name: caara-races-deployer audience
+        protocol: openid-connect
+        protocolMapper: oidc-audience-mapper
+        consentRequired: false
+        config:
+          included.client.audience: caara-races-deployer
+          id.token.claim: "false"
+          lightweight.claim: "false"
+          access.token.claim: "true"
+          introspection.token.claim: "true"
+      - name: group-membership
+        protocol: openid-connect
+        protocolMapper: oidc-group-membership-mapper
+        consentRequired: false
+        config:
+          full.path: "true"
+          introspection.token.claim: "true"
+          userinfo.token.claim: "true"
+          multivalued: "true"
+          id.token.claim: "true"
+          lightweight.claim: "false"
+          access.token.claim: "true"
+          claim.name: groups
+    defaultClientScopes:
+      - web-origins
+      - service_account
+      - acr
+      - profile
+      - roles
+      - basic
+      - email
+    optionalClientScopes:
+      - address
+      - phone
+      - offline_access
+      - organization
+      - microprofile-jwt
+users:
+  - username: service-account-caara-races-deployer
+    serviceAccountClientId: caara-races-deployer
+    groups:
+      - /approved
+smtpServer:
+  host: maddy
+  port: "25"
+  from: authadmin@oddbit.com
+  fromDisplayName: Authentication Administrator
+  ssl: "false"
+  starttls: "false"
+identityProviders:
+  - alias: github
+    displayName: Github
+    providerId: github
+    enabled: true
+    trustEmail: true
+    storeToken: false
+    addReadTokenRoleOnCreate: false
+    authenticateByDefault: false
+    linkOnly: false
+    hideOnLogin: false
+    config:
+      acceptsPromptNoneForwardFromClient: "false"
+      clientId: $(env:CAARA_GITHUB_OAUTH_CLIENT_ID)
+      disableUserInfo: "false"
+      filteredByClaim: "false"
+      syncMode: LEGACY
+      clientSecret: "$(env:CAARA_GITHUB_OAUTH_CLIENT_SECRET)"
+      caseSensitiveOriginalUsername: "false"
+      defaultScope: openid profile email
+      guiOrder: "20"
+  - alias: google
+    displayName: Google
+    providerId: google
+    enabled: true
+    updateProfileFirstLoginMode: "on"
+    trustEmail: true
+    storeToken: false
+    addReadTokenRoleOnCreate: false
+    authenticateByDefault: false
+    linkOnly: false
+    hideOnLogin: false
+    config:
+      acceptsPromptNoneForwardFromClient: "false"
+      clientId: $(env:CAARA_GOOGLE_OAUTH_CLIENT_ID)
+      disableUserInfo: "false"
+      filteredByClaim: "false"
+      syncMode: LEGACY
+      clientSecret: "$(env:CAARA_GOOGLE_OAUTH_CLIENT_SECRET)"
+      caseSensitiveOriginalUsername: "false"
+      defaultScope: openid profile email
+      guiOrder: "10"

@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: configure-keycloak
+spec:
+  schedule: "0 0 * * *"
+  suspend: true
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: keycloak-config-cli
+              image: keycloak-config-cli
+              args:
+                - --import.var-substitution.enabled=true
+              env:
+                - name: KEYCLOAK_URL
+                  value: "http://keycloak:8080"
+                - name: KEYCLOAK_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: keycloak-admin
+                      key: KC_BOOTSTRAP_ADMIN_USERNAME
+                - name: KEYCLOAK_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: keycloak-admin
+                      key: KC_BOOTSTRAP_ADMIN_PASSWORD
+                - name: KEYCLOAK_AVAILABILITYCHECK_ENABLED
+                  value: "true"
+                - name: KEYCLOAK_AVAILABILITYCHECK_TIMEOUT
+                  value: "120s"
+                - name: IMPORT_FILES_LOCATIONS
+                  value: "/config/*"
+              envFrom:
+                - secretRef:
+                    name: keycloak-config-env
+              volumeMounts:
+                - name: config
+                  mountPath: /config
+                  readOnly: true
+              resources:
+                requests:
+                  memory: "256Mi"
+                  cpu: "250m"
+                limits:
+                  memory: "512Mi"
+                  cpu: "500m"
+          restartPolicy: Never
+          volumes:
+            - name: config
+              configMap:
+                name: keycloak-realm-config

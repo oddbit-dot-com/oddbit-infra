@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-configure
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: configure
+  template:
+    metadata:
+      labels:
+        component: configure
+    spec:
+      serviceAccountName: vault
+      containers:
+        - name: bank-vaults
+          image: bank-vaults
+          command:
+            - bank-vaults
+            - configure
+          args:
+            - --vault-config-file
+            - /vault/config/runtime-config.yaml
+            - --mode
+            - k8s
+            - --k8s-secret-namespace
+            - $(BAO_K8S_NAMESPACE)
+            - --k8s-secret-name
+            - vault-unseal-keys
+            - --unseal-period
+            - 5m
+          env:
+            - name: VAULT_ADDR
+              value: "http://vault:8200"
+            - name: BAO_K8S_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+          envFrom:
+            - secretRef:
+                name: vault-config-env
+                optional: true
+          volumeMounts:
+            - mountPath: /vault/config
+              name: vault-runtime-config
+      volumes:
+        - name: vault-runtime-config
+          configMap:
+            name: vault-runtime-config

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault
+spec:
+  type: NodePort
+  ports:
+    - name: vault-api
+      port: 8200
+      targetPort: vault-api
+      nodePort: 30000
+    - name: vault-cluster
+      port: 8201
+      targetPort: vault-cluster
+      nodePort: 30001
+  selector:
+    openbao-active: "true"

@@ -1,0 +1,100 @@
+auth:
+  - type: oidc
+    options:
+      listing_visibility: "unauth"
+    config:
+      oidc_discovery_url: https://auth.oddbit.com/realms/oddbit
+      default_role: default
+      oidc_client_id: oddbit-vault
+      oidc_client_secret: "${ env `ODDBIT_CLIENT_SECRET` }"
+    roles:
+      - name: default
+        policies: default
+        user_claim: name
+        groups_claim: groups
+        oidc_scopes:
+          - groups
+        allowed_redirect_uris:
+          - https://vault.oddbit.com/ui/vault/auth/oidc/oidc/callback
+          - http://localhost:8250/oidc/callback
+
+policies:
+  - name: admin
+    rules: |
+      path "*" {
+        capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+      }
+  - name: vault-backup
+    rules: "path \"sys/storage/raft/snapshot\" {\n  capabilities = [\"read\"]\n}\n"
+  - name: oddbit-writer
+    rules: |
+      path "oddbit/*" {
+        capabilities = ["read", "list", "create", "delete", "update"]
+      }
+  - name: oddbit-reader
+    rules: |
+      path "oddbit/*" {
+        capabilities = ["read", "list"]
+      }
+  - name: caara-races-writer
+    rules: |
+      path "caara-races/*" {
+        capabilities = ["read", "list", "create", "delete", "update"]
+      }
+  - name: caara-races-reader
+    rules: |
+      path "caara-races/*" {
+        capabilities = ["read", "list"]
+      }
+  - name: baystateradio-writer
+    rules: |
+      path "baystateradio/*" {
+        capabilities = ["read", "list", "create", "delete", "update"]
+      }
+  - name: baystateradio-reader
+    rules: |
+      path "baystateradio/*" {
+        capabilities = ["read", "list"]
+      }
+
+groups:
+  - name: vault-admin
+    policies:
+      - admin
+    type: external
+  - name: vault-caara-races
+    policies:
+      - caara-races-writer
+    type: external
+  - name: vault-baystateradio
+    policies:
+      - baystateradio-writer
+    type: external
+
+group-aliases:
+  - name: vault-admin
+    mountpath: oidc
+    group: vault-admin
+  - name: vault-caara-races
+    mountpath: oidc
+    group: vault-caara-races
+  - name: vault-baystateradio
+    mountpath: oidc
+    group: vault-baystateradio
+
+secrets:
+  - description: General secrets for oddbit.com.
+    options:
+      version: 2
+    path: oddbit
+    type: kv
+  - description: General secrets for caara-races
+    options:
+      version: 2
+    path: caara-races
+    type: kv
+  - description: General secrets for baystateradio
+    options:
+      version: 2
+    path: baystateradio
+    type: kv

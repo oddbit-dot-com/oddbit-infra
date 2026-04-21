@@ -1,0 +1,24 @@
+realm: master
+displayName: Keycloak
+identityProviders:
+  - alias: google
+    displayName: Google
+    providerId: google
+    enabled: true
+    updateProfileFirstLoginMode: "on"
+    trustEmail: true
+    storeToken: false
+    addReadTokenRoleOnCreate: false
+    authenticateByDefault: false
+    linkOnly: false
+    hideOnLogin: false
+    config:
+      acceptsPromptNoneForwardFromClient: "false"
+      clientId: $(env:KEYCLOAK_GOOGLE_OAUTH_CLIENT_ID)
+      disableUserInfo: "false"
+      filteredByClaim: "false"
+      syncMode: LEGACY
+      clientSecret: "$(env:KEYCLOAK_GOOGLE_OAUTH_CLIENT_SECRET)"
+      caseSensitiveOriginalUsername: "false"
+      defaultScope: openid profile email
+      guiOrder: "10"

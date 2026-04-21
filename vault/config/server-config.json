@@ -1,0 +1,22 @@
+{
+	"listener": {
+		"tcp": {
+			"tls_disable": true,
+			"address": "0.0.0.0:8200"
+		}
+	},
+	"service_registration": {
+		"kubernetes": {}
+	},
+	"storage": {
+		"raft": {
+			"path": "/openbao/file",
+			"retry_join": [
+				{ "leader_api_addr": "http://vault-0.vault-internal:8200" },
+				{ "leader_api_addr": "http://vault-1.vault-internal:8200" },
+				{ "leader_api_addr": "http://vault-2.vault-internal:8200" }
+			]
+		}
+	},
+	"ui": true
+}
