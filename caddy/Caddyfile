@@ -1,3 +1,0 @@
-auth.oddbit.com {
-	reverse_proxy keycloak:8080
-}
