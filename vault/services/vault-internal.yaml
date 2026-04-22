@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: vault-internal
 spec:
+  publishNotReadyAddresses: true
   clusterIP: None
   ports:
     - name: vault-api
