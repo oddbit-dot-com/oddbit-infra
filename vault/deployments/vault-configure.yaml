@@ -41,7 +41,6 @@ spec:
           envFrom:
             - secretRef:
                 name: vault-config-env
-                optional: true
           volumeMounts:
             - mountPath: /vault/config
               name: vault-runtime-config
