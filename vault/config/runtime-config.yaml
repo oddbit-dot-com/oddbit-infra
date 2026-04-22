@@ -18,6 +18,16 @@ auth:
           - https://vault.oddbit.com/ui/vault/auth/oidc/oidc/callback
           - http://localhost:8250/oidc/callback
 
+  - type: kubernetes
+    config:
+      kubernetes_host: "https://kubernetes.default.svc"
+    roles:
+      - name: caara-races-reader
+        bound_service_account_names: caara-races-reader
+        bound_service_account_namespaces: lars-sandbox
+        policies: caara-races-reader
+        ttl: 1h
+
 policies:
   - name: admin
     rules: |
