@@ -30,7 +30,7 @@ images:
     newTag: v1.32.1
   - name: keycloak
     newName: quay.io/keycloak/keycloak
-    newTag: "26.2"
+    newTag: "26.5"
   - name: keycloak-config-cli
     newName: docker.io/adorsys/keycloak-config-cli
-    newTag: 6.5.0-26
+    newTag: 6.5.0-26.5.4

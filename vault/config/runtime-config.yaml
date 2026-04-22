@@ -5,7 +5,7 @@ auth:
     config:
       oidc_discovery_url: https://auth.oddbit.com/realms/oddbit
       default_role: default
-      oidc_client_id: oddbit-vault
+      oidc_client_id: "${ env `ODDBIT_CLIENT_ID` }"
       oidc_client_secret: "${ env `ODDBIT_CLIENT_SECRET` }"
     roles:
       - name: default
