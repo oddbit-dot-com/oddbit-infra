@@ -1,4 +1,20 @@
 auth:
+  - type: jwt
+    path: github-actions
+    config:
+      oidc_discovery_url: https://token.actions.githubusercontent.com
+      bound_issuer: https://token.actions.githubusercontent.com
+    roles:
+      - name: caara-races-reader
+        role_type: jwt
+        user_claim: sub
+        bound_audiences:
+          - urn:vault.oddbit.com:caara-races
+        bound_claims:
+          repository: caara-races/caara-races-website
+        policies: caara-races-reader
+        ttl: 1h
+
   - type: oidc
     options:
       listing_visibility: "unauth"
