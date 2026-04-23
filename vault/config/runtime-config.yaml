@@ -11,7 +11,9 @@ auth:
         bound_audiences:
           - urn:vault.oddbit.com:caara-races
         bound_claims:
-          repository: caara-races/caara-races-website
+          repository:
+            - caara-races/caara-races-website
+            - oddbit-dot-com/github-config
         policies: caara-races-reader
         ttl: 1h
 
