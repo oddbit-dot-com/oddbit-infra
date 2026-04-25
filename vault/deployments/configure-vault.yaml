@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vault-configure
+  name: configure-vault
 spec:
   replicas: 1
   selector:

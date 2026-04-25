@@ -13,7 +13,7 @@ resources:
   - services/vault.yaml
   - services/vault-internal.yaml
   - rbac.yaml
-  - deployments/vault-configure.yaml
+  - deployments/configure-vault.yaml
   - ingress.yaml
 
 configMapGenerator:
